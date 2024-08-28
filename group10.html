@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Earthquake Visualization</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="utf-8" />
+
+        <!-- Include D3 JavaScript -->
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+
+        <!-- Load Leaflet CSS -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        />
+        <!-- Load Leaflet.markercluster CSS -->
+        <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"
+        />
+        <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
+        />
+
+        <!-- Load noUiSlider -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/11.1.0/nouislider.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/11.1.0/nouislider.min.css"
+        />
+
+        <!-- Load custom CSS -->
+        <link href="https://fonts.cdnfonts.com/css/cutive-mono" rel="stylesheet">
+        <link href="https://fonts.cdnfonts.com/css/noto-serif-gurmukhi" rel="stylesheet">
+                
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <h1 id="Title">Earthquake Visualization</h1>
+        <h2 id="mapTitle">Earthquake Map</h1>
+        <p id="mapSubtitle">
+            Explore earthquake data across various measures and regions on this interactive map. Choose from measures including <strong>Earthquakes by Magnitude</strong>, <strong>Damages in $Millions</strong>, <strong>Number of Injuries</strong>, <strong>Houses Destroyed</strong>, <strong>Missing Persons</strong>, and <strong>Deaths</strong>.<br><br>
+            
+            Filter data for specific regions such as <strong>North America</strong>, <strong>Caribbean</strong>, <strong>Middle East</strong>, <strong>East Asia</strong>, <strong>Southern Europe</strong>, and more. Utilize the <strong>timeline</strong> and <strong>magnitude slider</strong> to refine displayed earthquakes based on their occurrence time and severity.<br><br>
+            
+            The color legend represents earthquake <strong>severity</strong>, providing a comprehensive view of seismic activity over the past century.
+        </p>
+        <!-- Tabs for switching between maps -->
+        <div class="tab">
+            <button class="tablinks" onclick="openMap1(event, 'page1')">Cluster Map</button>
+            <button class="tablinks" onclick="openMap2(event, 'page2')">Full-Scale Map</button>
+            <div class="dropdown-container">
+                <select id="mapMeasure" class="dropdown">
+                    <option value="Magnitude"> Switch Map Measure </option>
+                    <option value="Magnitude">Magnitude</option>
+                    <option value="total_damage_millions_dollars">Damage Incurred</option>
+                    <option value="total_deaths">Number of Deaths</option>
+                    <option value="total_houses_destroyed">
+                        Number of Houses Destroyed
+                    </option>
+                    <option value="total_injuries">Number of Injuries</option>
+                    <option value="total_missing">Number of Missing Persons</option>
+                </select>
+                <select id="mapRegion" class="dropdown">
+                    <option value="All">Filter Region</option>
+                    <!-- Other options -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Container for the maps -->
+        <div id="map"></div>
+        <div id="map2"></div>
+
+        <div class="zero-value-toggle">
+            <label for="zeroValueToggle">Show zero values:</label>
+            <input type="checkbox" id="zeroValueToggle" />
+        </div>
+
+        <!-- Sliders -->
+        <div id="yearSlider"></div>
+        <div class="slider-styled" id="magnitudeSlider"></div>
+
+        <!-- Scatter Plot + Histogram -->
+        <div id = "scatterPlot"></div>
+        <div class="EQcontainer">
+            <!-- Color legend for histogram -->
+            <div id="colorLegend" class="color-legend">
+                <div><span class="legend-circle-custom" style="background-color: #B30923;"></span> Great</div>
+                <div><span class="legend-circle-custom" style="background-color: #E03426;"></span> Major</div>
+                <div><span class="legend-circle-custom" style="background-color: #EE671C;"></span> Strong</div>
+                <div><span class="legend-circle-custom" style="background-color: #F89116;"></span> Moderate</div>
+                <div><span class="legend-circle-custom" style="background-color: #D1BD1C;"></span> Light</div>
+                <div><span class="legend-circle-custom" style="background-color: #A3B71F;"></span> Minor</div>
+                <div><span class="legend-circle-custom" style="background-color: #52A43C;"></span> Micro</div>
+            </div>
+
+            <div id="histogramPlot"></div>
+            <div id="eqInfo">
+                <!-- Content for eqInfo -->
+                <h2>Earthquake Classes and Magnitudes</h2>
+                <!-- Add the content you provided -->
+                <p style="letter-spacing: -1.5px;">Earthquake classes range from <strong style="color: #52A43C;">Micro</strong> to <strong style="color: #B30923;">Great</strong> depending on the magnitude</p>
+                <p><strong style="color: #B30923;">Great:</strong> Magnitude   <strong>8.0 or more</strong></p>
+                <p><strong style="color: #E03426;">Major:</strong> Range        <strong>7.0 - 7.9</strong></p>
+                <p><strong style="color: #EE671C;">Strong:</strong> Range       <strong>6.0 - 6.9</strong></p>
+                <p><strong style="color: #F89116;">Moderate:</strong> Range     <strong>5.0 - 5.9</strong></p>
+                <p><strong style="color: #D1BD1C;">Light:</strong> Range        <strong>4.0-4.9</strong></p>
+                <p><strong style="color: #A3B71F;">Minor:</strong> Range        <strong>2.0 - 3.9</strong></p>
+                <p><strong style="color: #52A43C;">Micro:</strong> Less than    <strong>2.0</strong></p>
+            </div>
+        </div>
+
+        <!-- Script to trigger openMap1 on page load -->
+        <script>
+            // Function to simulate a click on the 'Cluster Map' button to trigger openMap1
+            document.addEventListener('DOMContentLoaded', function() {
+                // Trigger the click event on the 'Cluster Map' button
+                document.querySelector('.tablinks:first-child').click();
+            });
+        </script>
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script>
+        $(document).ready(function() {
+            // Add the animation class to map and map2 when the document is ready
+            $('#map, #map2').addClass('animate-once');
+
+            // Function to handle map switch and remove animation class
+            $('.tablinks').on('click', function() {
+            // Remove animation class when switching maps
+            $('#map, #map2').removeClass('animate-once');
+            });
+        });
+        </script>
+
+        <!-- Load Leaflet and other JavaScript -->
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+
+        <!-- Load Leaflet.markercluster -->
+        <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+        <!-- Load your custom JavaScript -->
+        <script src="group10.js"></script>
+        <script src="scatterPlot.js"></script>
+        <script src="histogramPlot.js"></script>        
+    </body>
+</html>
